@@ -37,33 +37,6 @@ function parseTextAds(results: Record<string, unknown>[]): Advertiser[] {
   });
 }
 
-function parseLocalServiceAds(ads: Record<string, unknown>[]): Advertiser[] {
-  return ads.map((ad, index) => {
-    const title = String(ad.title ?? "");
-    const phone = String(ad.phone ?? "");
-    const rating = Number(ad.rating ?? 0);
-    const ratingCount = Number(ad.rating_count ?? 0);
-    const type = String(ad.type ?? "");
-    const serviceArea = String(ad.service_area ?? "");
-
-    const description = [type, serviceArea, phone].filter(Boolean).join(" · ");
-
-    return {
-      id: `lsa-${index}`,
-      businessName: title,
-      domain: "",
-      displayUrl: "",
-      headline: title,
-      description,
-      adType: "search" as const,
-      position: index + 1,
-      rating: rating || undefined,
-      reviews: ratingCount || undefined,
-      isLSA: true,
-      phone: phone || undefined,
-    } as Advertiser;
-  });
-}
 
 function parseShoppingAds(results: Record<string, unknown>[]): Advertiser[] {
   return results.map((item, index) => {
@@ -151,20 +124,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
     const items = (serpData.shopping_results as Record<string, unknown>[] | undefined) ?? [];
     advertisers = parseShoppingAds(items);
   } else {
-    // Regular text ads
+    // Regular text ads only (LSAs excluded — not manageable via standard Google Ads)
     const textAds = (serpData.ads as Record<string, unknown>[] | undefined) ?? [];
-    const parsed = parseTextAds(textAds);
-
-    // Google Local Service Ads (LSAs) — shown above text ads for local verticals
-    const localAdsContainer = serpData.local_ads as Record<string, unknown> | undefined;
-    const lsaAds = (localAdsContainer?.ads as Record<string, unknown>[] | undefined) ?? [];
-    const parsedLSA = parseLocalServiceAds(lsaAds);
-
-    // LSAs first (higher intent / more competitive), then text ads
-    advertisers = [
-      ...parsedLSA.map((a, i) => ({ ...a, position: i + 1 })),
-      ...parsed.map((a, i) => ({ ...a, position: parsedLSA.length + i + 1 })),
-    ];
+    advertisers = parseTextAds(textAds);
   }
 
   return NextResponse.json({
