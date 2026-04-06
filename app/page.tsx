@@ -18,6 +18,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SearchState | null>(null);
   const [lastSearch, setLastSearch] = useState<SearchParams | null>(null);
+  const [injectedKeyword, setInjectedKeyword] = useState<string | undefined>();
 
   async function handleSearch(params: SearchParams) {
     setIsLoading(true);
@@ -51,8 +52,9 @@ export default function Home() {
   }
 
   function handleWizardApply(keyword: string) {
-    if (!lastSearch) return;
-    handleSearch({ ...lastSearch, keyword });
+    setInjectedKeyword(keyword);
+    setResults(null);
+    setError(null);
   }
 
   return (
@@ -73,13 +75,13 @@ export default function Home() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Find Businesses Running PPC Ads</h1>
           <p className="text-slate-500 mt-1.5 text-sm max-w-xl">
-            Enter a vertical and city to discover who's spending money on Google ads in that area — build your outreach list in seconds.
+            Enter a vertical and city to discover who's running Search and PMax campaigns on Google — build your outreach list in seconds.
           </p>
         </div>
 
         {/* Search card */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+          <SearchForm onSearch={handleSearch} isLoading={isLoading} injectedKeyword={injectedKeyword} />
         </div>
 
         {/* AI Query Wizard — always visible below the search form */}
@@ -109,7 +111,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <p className="text-slate-600 font-medium">No paid text ads found</p>
+            <p className="text-slate-600 font-medium">No Search / PMax ads found</p>
             <p className="text-slate-400 text-sm mt-1">
               Try the AI wizard above to generate better search terms
             </p>

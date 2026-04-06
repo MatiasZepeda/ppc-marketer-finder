@@ -23,22 +23,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuggestRespon
 
   const { keyword = "", city = "", adType = "search" } = body;
 
-  const prompt = `You are a Google Ads expert helping find businesses that run paid PPC campaigns.
+  const prompt = `You are a Google Ads expert helping find businesses that run Search ads (RSA) and Performance Max (PMax) campaigns.
 
 The user searched for "${keyword}" in "${city}" but got 0 results for ${adType} ads.
 
-Generate 5 alternative search keyword ideas that are MORE LIKELY to show paid Google ${adType} ads for businesses in that vertical and area.
+Note: Google Local Service Ads (LSAs) are NOT what we want — we want Responsive Search Ads and PMax campaigns only.
+
+Generate 5 alternative search keyword ideas that are MORE LIKELY to surface businesses running Search or PMax campaigns in that vertical and area.
 
 Rules:
-- Focus on commercial keywords businesses actually bid on
-- Avoid hyper-local terms that trigger Google Maps/LSA pack instead of text ads
-- Think about what a business owner would target: services, solutions, product names
-- Vary the intent: some transactional ("hire X"), some informational ("X company"), some branded ("X services")
+- Focus on commercial keywords businesses bid on in standard Search/PMax campaigns
+- Avoid terms dominated by LSAs (e.g. home services, legal, medical tend to be LSA-heavy)
+- Think about what a business owner targets: services, solutions, brand terms, product categories
+- Vary the intent: transactional ("X company"), categorical ("X services"), branded ("best X")
 - Keep keywords short (2-5 words max)
 
 Return ONLY a JSON array with exactly 5 objects. No explanation, no markdown, just raw JSON:
 [
-  { "keyword": "...", "rationale": "short reason why this gets text ads" },
+  { "keyword": "...", "rationale": "short reason why this triggers Search/PMax ads" },
   ...
 ]`;
 

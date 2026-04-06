@@ -8,14 +8,20 @@ import type { SearchParams, AdType } from "@/types";
 interface SearchFormProps {
   onSearch: (params: SearchParams) => void;
   isLoading: boolean;
+  injectedKeyword?: string; // set by AI wizard — fills the keyword field
 }
 
-export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
+export default function SearchForm({ onSearch, isLoading, injectedKeyword }: SearchFormProps) {
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("");
   const [adType, setAdType] = useState<AdType>("search");
   const [cityOpen, setCityOpen] = useState(false);
   const cityRef = useRef<HTMLDivElement>(null);
+
+  // When wizard injects a keyword, fill it in
+  useEffect(() => {
+    if (injectedKeyword) setKeyword(injectedKeyword);
+  }, [injectedKeyword]);
 
   const filteredCities = city.length >= 2
     ? US_CITIES.filter((c) => c.toLowerCase().includes(city.toLowerCase())).slice(0, 8)
@@ -41,7 +47,7 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        {/* Keyword — plain text, no autocomplete */}
+        {/* Keyword */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Vertical / Keyword
@@ -50,13 +56,13 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="e.g. Roofing, HVAC, Insurance..."
+            placeholder="e.g. Roofing, Auto Dealer, Insurance..."
             required
             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-colors"
           />
         </div>
 
-        {/* City — filtered dropdown */}
+        {/* City */}
         <div className="relative" ref={cityRef}>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             City, State
@@ -68,7 +74,7 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
               value={city}
               onChange={(e) => { setCity(e.target.value); setCityOpen(true); }}
               onFocus={() => setCityOpen(true)}
-              placeholder="e.g. Madison, WI"
+              placeholder="e.g. Chicago, IL"
               required
               autoComplete="off"
               className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-colors"
@@ -107,7 +113,7 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
                     : "bg-white text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                {type === "search" ? "Search" : "Shopping"}
+                {type === "search" ? "Search / PMax" : "Shopping"}
               </button>
             ))}
           </div>
