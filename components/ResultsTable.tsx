@@ -57,7 +57,7 @@ export default function ResultsTable({ advertisers, query, location }: ResultsTa
             {advertisers.length} advertiser{advertisers.length !== 1 ? "s" : ""} found
           </h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Query: <span className="font-medium text-slate-700">"{query}"</span> · ZIP: <span className="font-medium text-slate-700">{location}</span>
+            Query: <span className="font-medium text-slate-700">"{query}"</span> · <span className="font-medium text-slate-700">{location}</span>
           </p>
         </div>
         <button

@@ -29,7 +29,7 @@ const VERTICAL_SUGGESTIONS = [
 
 export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [keyword, setKeyword] = useState("");
-  const [zipCode, setZipCode] = useState("");
+  const [city, setCity] = useState("");
   const [adType, setAdType] = useState<AdType>("search");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -41,8 +41,8 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!keyword.trim() || !zipCode.trim()) return;
-    onSearch({ keyword: keyword.trim(), zipCode: zipCode.trim(), adType });
+    if (!keyword.trim() || !city.trim()) return;
+    onSearch({ keyword: keyword.trim(), city: city.trim(), adType });
   }
 
   return (
@@ -81,17 +81,16 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
           )}
         </div>
 
-        {/* Zip Code */}
+        {/* City */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            ZIP Code
+            City, State
           </label>
           <input
             type="text"
-            value={zipCode}
-            onChange={(e) => setZipCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
-            placeholder="e.g. 90210"
-            maxLength={5}
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="e.g. Madison, WI"
             required
             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-colors"
           />
@@ -123,7 +122,7 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 
       <button
         type="submit"
-        disabled={isLoading || !keyword.trim() || !zipCode.trim()}
+        disabled={isLoading || !keyword.trim() || !city.trim()}
         className="flex items-center gap-2 px-6 py-2.5 bg-sky-700 hover:bg-sky-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
       >
         {isLoading ? (

@@ -26,7 +26,7 @@ export default function Home() {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
+        body: JSON.stringify({ keyword: params.keyword, city: params.city, adType: params.adType }),
       });
 
       const data = await res.json();
@@ -38,7 +38,7 @@ export default function Home() {
         setResults({
           advertisers: data.data ?? [],
           query: data.query ?? params.keyword,
-          location: data.location ?? params.zipCode,
+          location: data.location ?? params.city,
           hasSearched: true,
         });
       }

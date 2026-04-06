@@ -16,7 +16,7 @@ export interface Advertiser {
 
 export interface SearchParams {
   keyword: string;
-  zipCode: string;
+  city: string;
   adType: AdType;
 }
 

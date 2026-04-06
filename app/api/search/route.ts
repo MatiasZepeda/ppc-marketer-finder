@@ -68,23 +68,21 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
     return NextResponse.json({ success: false, error: "SerpAPI key not configured" }, { status: 500 });
   }
 
-  let body: { keyword?: string; zipCode?: string; adType?: string };
+  let body: { keyword?: string; city?: string; adType?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
-  const { keyword, zipCode, adType } = body;
+  const { keyword, city, adType } = body;
 
-  if (!keyword || !zipCode) {
-    return NextResponse.json({ success: false, error: "keyword and zipCode are required" }, { status: 400 });
+  if (!keyword || !city) {
+    return NextResponse.json({ success: false, error: "keyword and city are required" }, { status: 400 });
   }
 
-  // Use keyword only in query — location handles the geo targeting
-  // "best" prefix helps trigger more commercial ad results
   const query = `best ${keyword}`;
-  const location = `${zipCode}, United States`;
+  const location = city;
 
   const params = new URLSearchParams({
     api_key: SERPAPI_KEY,
@@ -132,8 +130,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
   return NextResponse.json({
     success: true,
     data: advertisers,
-    query: `${keyword} near ${zipCode}`,
-    location: zipCode,
+    query: `${keyword} in ${city}`,
+    location: city,
     total: advertisers.length,
   });
 }
