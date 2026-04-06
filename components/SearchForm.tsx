@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Search, Loader2, MapPin } from "lucide-react";
+import { US_CITIES } from "@/lib/cities";
 import type { SearchParams, AdType } from "@/types";
 
 interface SearchFormProps {
@@ -9,35 +10,26 @@ interface SearchFormProps {
   isLoading: boolean;
 }
 
-const VERTICAL_SUGGESTIONS = [
-  "Plumber",
-  "Electrician",
-  "HVAC",
-  "Roofing",
-  "Dentist",
-  "Lawyer",
-  "Real Estate Agent",
-  "Landscaping",
-  "Pest Control",
-  "Auto Repair",
-  "Locksmith",
-  "Moving Company",
-  "Cleaning Service",
-  "Insurance Agent",
-  "Financial Advisor",
-];
-
 export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("");
   const [adType, setAdType] = useState<AdType>("search");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const cityRef = useRef<HTMLDivElement>(null);
 
-  const filtered = keyword.length > 0
-    ? VERTICAL_SUGGESTIONS.filter((s) =>
-        s.toLowerCase().includes(keyword.toLowerCase())
-      )
-    : VERTICAL_SUGGESTIONS;
+  const filteredCities = city.length >= 2
+    ? US_CITIES.filter((c) => c.toLowerCase().includes(city.toLowerCase())).slice(0, 8)
+    : [];
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (cityRef.current && !cityRef.current.contains(e.target as Node)) {
+        setCityOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,8 +40,9 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Keyword / Vertical */}
-        <div className="relative">
+
+        {/* Keyword — plain text, no autocomplete */}
+        <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Vertical / Keyword
           </label>
@@ -57,43 +50,44 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-            placeholder="e.g. Plumber, Dentist..."
+            placeholder="e.g. Roofing, HVAC, Insurance..."
             required
             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-colors"
           />
-          {showSuggestions && filtered.length > 0 && (
-            <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
-              {filtered.slice(0, 8).map((s) => (
+        </div>
+
+        {/* City — filtered dropdown */}
+        <div className="relative" ref={cityRef}>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            City, State
+          </label>
+          <div className="relative">
+            <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => { setCity(e.target.value); setCityOpen(true); }}
+              onFocus={() => setCityOpen(true)}
+              placeholder="e.g. Madison, WI"
+              required
+              autoComplete="off"
+              className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-colors"
+            />
+          </div>
+          {cityOpen && filteredCities.length > 0 && (
+            <ul className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+              {filteredCities.map((c) => (
                 <li
-                  key={s}
-                  onMouseDown={() => {
-                    setKeyword(s);
-                    setShowSuggestions(false);
-                  }}
-                  className="px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors"
+                  key={c}
+                  onMouseDown={() => { setCity(c); setCityOpen(false); }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors"
                 >
-                  {s}
+                  <MapPin size={12} className="text-slate-400 shrink-0" />
+                  {c}
                 </li>
               ))}
             </ul>
           )}
-        </div>
-
-        {/* City */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            City, State
-          </label>
-          <input
-            type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="e.g. Madison, WI"
-            required
-            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition-colors"
-          />
         </div>
 
         {/* Ad Type */}

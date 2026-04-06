@@ -10,17 +10,19 @@ interface Suggestion {
 }
 
 interface QueryWizardProps {
-  lastSearch: SearchParams;
+  lastSearch: SearchParams | null;
   onApply: (keyword: string) => void;
+  isLoading?: boolean;
 }
 
-export default function QueryWizard({ lastSearch, onApply }: QueryWizardProps) {
+export default function QueryWizard({ lastSearch, onApply, isLoading: searchLoading }: QueryWizardProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
 
   async function generate() {
+    if (!lastSearch) return;
     setIsLoading(true);
     setError(null);
 
@@ -60,8 +62,10 @@ export default function QueryWizard({ lastSearch, onApply }: QueryWizardProps) {
         <div>
           <h3 className="text-sm font-semibold text-slate-900">AI Query Wizard</h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            No results for <span className="font-medium text-slate-700">"{lastSearch.keyword}"</span> in{" "}
-            <span className="font-medium text-slate-700">{lastSearch.city}</span> — let AI suggest better search terms
+            {lastSearch
+              ? <>Based on <span className="font-medium text-slate-700">"{lastSearch.keyword}"</span> in <span className="font-medium text-slate-700">{lastSearch.city}</span> — generate smarter search terms</>
+              : "Run a search first, then let AI suggest better keyword variations"
+            }
           </p>
         </div>
         {hasGenerated && (
@@ -81,11 +85,15 @@ export default function QueryWizard({ lastSearch, onApply }: QueryWizardProps) {
         {!hasGenerated && !isLoading && (
           <div className="flex items-center gap-4">
             <p className="text-sm text-slate-500 flex-1">
-              Claude will analyze the vertical and suggest keywords more likely to trigger paid text ads.
+              {lastSearch
+                ? "Claude will suggest keyword variations more likely to show paid text ads."
+                : "Run a search above first, then use the wizard to get AI-powered keyword suggestions."
+              }
             </p>
             <button
               onClick={generate}
-              className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer shrink-0"
+              disabled={!lastSearch || searchLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer shrink-0"
             >
               <Sparkles size={14} />
               Generate suggestions

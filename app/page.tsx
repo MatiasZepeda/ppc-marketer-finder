@@ -52,16 +52,8 @@ export default function Home() {
 
   function handleWizardApply(keyword: string) {
     if (!lastSearch) return;
-    const newParams = { ...lastSearch, keyword };
-    handleSearch(newParams);
+    handleSearch({ ...lastSearch, keyword });
   }
-
-  const showWizard =
-    !isLoading &&
-    !error &&
-    results !== null &&
-    results.advertisers.length === 0 &&
-    lastSearch !== null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -90,6 +82,9 @@ export default function Home() {
           <SearchForm onSearch={handleSearch} isLoading={isLoading} />
         </div>
 
+        {/* AI Query Wizard — always visible below the search form */}
+        <QueryWizard lastSearch={lastSearch} onApply={handleWizardApply} isLoading={isLoading} />
+
         {/* Error */}
         {error && (
           <div className="mt-6 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -97,8 +92,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* Results with data */}
-        {results && results.advertisers.length > 0 && !error && (
+        {/* Results */}
+        {results && !error && (
           <ResultsTable
             advertisers={results.advertisers}
             query={results.query}
@@ -106,26 +101,23 @@ export default function Home() {
           />
         )}
 
-        {/* No results + AI wizard */}
-        {showWizard && (
-          <>
-            <div className="mt-8 text-center py-10 bg-white rounded-xl border border-slate-200">
-              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <p className="text-slate-600 font-medium">No paid ads found</p>
-              <p className="text-slate-400 text-sm mt-1">
-                "{lastSearch!.keyword}" in {lastSearch!.city} didn't return text ads
-              </p>
+        {/* Empty state — no results after search */}
+        {results && results.advertisers.length === 0 && !error && (
+          <div className="mt-4 text-center py-10 bg-white rounded-xl border border-slate-200">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
-            <QueryWizard lastSearch={lastSearch!} onApply={handleWizardApply} />
-          </>
+            <p className="text-slate-600 font-medium">No paid text ads found</p>
+            <p className="text-slate-400 text-sm mt-1">
+              Try the AI wizard above to generate better search terms
+            </p>
+          </div>
         )}
 
         {/* Empty state before any search */}
-        {!results && !error && !isLoading && (
+        {!results && !error && !isLoading && !lastSearch && (
           <div className="mt-10 text-center py-16">
             <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <Target size={24} className="text-slate-400" />
