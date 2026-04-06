@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, ExternalLink, Star } from "lucide-react";
+import { Download, ExternalLink, Star, Phone } from "lucide-react";
 import type { Advertiser } from "@/types";
 
 interface ResultsTableProps {
@@ -10,14 +10,15 @@ interface ResultsTableProps {
 }
 
 function exportToCsv(advertisers: Advertiser[], query: string) {
-  const headers = ["Position", "Business Name", "Domain", "Headline", "Description", "Ad Type", "Price", "Rating", "Reviews"];
+  const headers = ["Position", "Business Name", "Domain", "Headline", "Description", "Ad Type", "Phone", "Price", "Rating", "Reviews"];
   const rows = advertisers.map((a) => [
     a.position,
     `"${a.businessName.replace(/"/g, '""')}"`,
     a.domain,
     `"${a.headline.replace(/"/g, '""')}"`,
     `"${a.description.replace(/"/g, '""')}"`,
-    a.adType,
+    a.isLSA ? "LSA" : a.adType,
+    a.phone ?? "",
     a.price ?? "",
     a.rating ?? "",
     a.reviews ?? "",
@@ -98,6 +99,12 @@ export default function ResultsTable({ advertisers, query, location }: ResultsTa
                         <span className="text-xs text-slate-500">{ad.rating} ({ad.reviews?.toLocaleString()})</span>
                       </div>
                     )}
+                    {ad.phone && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Phone size={10} className="text-slate-400" />
+                        <span className="text-xs text-slate-500">{ad.phone}</span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3.5 max-w-xs">
                     <div className="font-medium text-slate-800 line-clamp-1">{ad.headline}</div>
@@ -110,11 +117,13 @@ export default function ResultsTable({ advertisers, query, location }: ResultsTa
                   </td>
                   <td className="px-4 py-3.5">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                      ad.adType === "search"
+                      ad.isLSA
+                        ? "bg-violet-50 text-violet-700"
+                        : ad.adType === "search"
                         ? "bg-sky-50 text-sky-700"
                         : "bg-emerald-50 text-emerald-700"
                     }`}>
-                      {ad.adType}
+                      {ad.isLSA ? "LSA" : ad.adType}
                     </span>
                   </td>
                   <td className="px-4 py-3.5">

@@ -12,6 +12,8 @@ export interface Advertiser {
   price?: string;
   rating?: number;
   reviews?: number;
+  isLSA?: boolean;
+  phone?: string;
 }
 
 export interface SearchParams {

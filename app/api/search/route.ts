@@ -13,10 +13,10 @@ function extractDomain(url: string): string {
   }
 }
 
-function parseSearchAds(results: Record<string, unknown>[]): Advertiser[] {
+function parseTextAds(results: Record<string, unknown>[]): Advertiser[] {
   return results.map((ad, index) => {
-    const trackingLink = String(ad.tracking_link ?? ad.link ?? "");
     const displayLink = String(ad.displayed_link ?? ad.link ?? "");
+    const trackingLink = String(ad.tracking_link ?? ad.link ?? "");
     const title = String(ad.title ?? "");
     const description = String(
       (ad.description as string) ??
@@ -28,12 +28,40 @@ function parseSearchAds(results: Record<string, unknown>[]): Advertiser[] {
       id: `search-${index}`,
       businessName: title.split(" - ")[0] ?? title,
       domain: extractDomain(displayLink || trackingLink),
-      displayUrl: displayLink,
+      displayUrl: displayLink || trackingLink,
       headline: title,
       description,
       adType: "search" as const,
       position: index + 1,
     };
+  });
+}
+
+function parseLocalServiceAds(ads: Record<string, unknown>[]): Advertiser[] {
+  return ads.map((ad, index) => {
+    const title = String(ad.title ?? "");
+    const phone = String(ad.phone ?? "");
+    const rating = Number(ad.rating ?? 0);
+    const ratingCount = Number(ad.rating_count ?? 0);
+    const type = String(ad.type ?? "");
+    const serviceArea = String(ad.service_area ?? "");
+
+    const description = [type, serviceArea, phone].filter(Boolean).join(" · ");
+
+    return {
+      id: `lsa-${index}`,
+      businessName: title,
+      domain: "",
+      displayUrl: "",
+      headline: title,
+      description,
+      adType: "search" as const,
+      position: index + 1,
+      rating: rating || undefined,
+      reviews: ratingCount || undefined,
+      isLSA: true,
+      phone: phone || undefined,
+    } as Advertiser;
   });
 }
 
@@ -52,7 +80,7 @@ function parseShoppingAds(results: Record<string, unknown>[]): Advertiser[] {
       domain: extractDomain(link),
       displayUrl: link,
       headline: title,
-      description: price ? `Price: ${price}` : "",
+      description: "",
       adType: "shopping" as const,
       position: index + 1,
       price,
@@ -80,12 +108,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
     return NextResponse.json({ success: false, error: "keyword and zipCode are required" }, { status: 400 });
   }
 
-  const query = `${keyword} near ${zipCode}`;
+  // Use keyword only in query — location handles the geo targeting
+  // "best" prefix helps trigger more commercial ad results
+  const query = `best ${keyword}`;
+  const location = `${zipCode}, United States`;
 
   const params = new URLSearchParams({
     api_key: SERPAPI_KEY,
     q: query,
-    location: zipCode,
+    location,
     hl: "en",
     gl: "us",
     num: "10",
@@ -120,14 +151,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
     const items = (serpData.shopping_results as Record<string, unknown>[] | undefined) ?? [];
     advertisers = parseShoppingAds(items);
   } else {
-    const ads = (serpData.ads as Record<string, unknown>[] | undefined) ?? [];
-    advertisers = parseSearchAds(ads);
+    // Regular text ads
+    const textAds = (serpData.ads as Record<string, unknown>[] | undefined) ?? [];
+    const parsed = parseTextAds(textAds);
+
+    // Google Local Service Ads (LSAs) — shown above text ads for local verticals
+    const localAdsContainer = serpData.local_ads as Record<string, unknown> | undefined;
+    const lsaAds = (localAdsContainer?.ads as Record<string, unknown>[] | undefined) ?? [];
+    const parsedLSA = parseLocalServiceAds(lsaAds);
+
+    // LSAs first (higher intent / more competitive), then text ads
+    advertisers = [
+      ...parsedLSA.map((a, i) => ({ ...a, position: i + 1 })),
+      ...parsed.map((a, i) => ({ ...a, position: parsedLSA.length + i + 1 })),
+    ];
   }
 
   return NextResponse.json({
     success: true,
     data: advertisers,
-    query,
+    query: `${keyword} near ${zipCode}`,
     location: zipCode,
     total: advertisers.length,
   });
