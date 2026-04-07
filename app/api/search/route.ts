@@ -81,9 +81,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
     return NextResponse.json({ success: false, error: "keyword and city are required" }, { status: 400 });
   }
 
-  // Include city in query AND as location param — improves text ad coverage
-  const cityName = city.split(",")[0].trim();
-  const query = `${keyword} ${cityName}`;
+  // Use keyword as-is — location param handles geo targeting
+  const query = keyword;
   const location = city;
 
   const params = new URLSearchParams({
@@ -132,7 +131,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SearchRespons
   return NextResponse.json({
     success: true,
     data: advertisers,
-    query: `${keyword} in ${city}`,
+    query: keyword,
     location: city,
     total: advertisers.length,
   });

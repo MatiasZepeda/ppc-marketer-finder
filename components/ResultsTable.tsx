@@ -34,19 +34,7 @@ function exportToCsv(advertisers: Advertiser[], query: string) {
 }
 
 export default function ResultsTable({ advertisers, query, location }: ResultsTableProps) {
-  if (advertisers.length === 0) {
-    return (
-      <div className="mt-8 text-center py-16 bg-white rounded-xl border border-slate-200">
-        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-          <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        <p className="text-slate-600 font-medium">No paid ads found</p>
-        <p className="text-slate-400 text-sm mt-1">Try a different keyword or location</p>
-      </div>
-    );
-  }
+  if (advertisers.length === 0) return null;
 
   return (
     <div className="mt-8">

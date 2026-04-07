@@ -86,7 +86,7 @@ export default function QueryWizard({ lastSearch, onApply, isLoading: searchLoad
           <div className="flex items-center gap-4">
             <p className="text-sm text-slate-500 flex-1">
               {lastSearch
-                ? "Claude will suggest keyword variations more likely to show paid text ads."
+                ? "Claude will suggest keyword variations more likely to show Search / PMax ads."
                 : "Run a search above first, then use the wizard to get AI-powered keyword suggestions."
               }
             </p>
